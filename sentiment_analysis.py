@@ -1,0 +1,210 @@
+
+# coding: utf-8
+
+# In[1]:
+
+
+import os
+import cv2
+import pandas as pd
+import math
+import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
+
+train_file = "train_data.csv"
+test_file = "test_data.csv"
+
+def load_data(file, direc="", sep=",", header=True):
+    csv_path = os.path.join(direc, file)
+    if header:
+        return pd.read_csv(csv_path, sep=sep, index_col=False)
+    else:
+        return pd.read_csv(csv_path, sep=sep, index_col=False, header=None)
+    
+
+
+# In[2]:
+
+
+train_data = load_data(train_file)
+
+
+# In[3]:
+
+
+train_data.head()
+
+
+# In[4]:
+
+
+test_data = load_data(test_file)
+
+
+# In[5]:
+
+
+test_data.head()
+
+
+# In[6]:
+
+
+train_labels = np.int16(train_data["Sentiment"].copy().values)
+train_features = train_data.drop("Sentiment", axis=1)
+
+test_labels = np.int16(test_data["Sentiment"].copy().values)
+test_features = test_data.drop("Sentiment", axis=1)
+
+
+# In[7]:
+
+
+from sklearn.preprocessing import StandardScaler
+
+scalar = StandardScaler()
+scalar.fit(train_features)
+
+train_features = scalar.transform(train_features)
+test_features = scalar.transform(test_features)
+
+
+# In[8]:
+
+
+from sklearn.metrics import roc_curve
+import matplotlib.pyplot as plt
+def plot_roc_curve(clf_sets):
+    for clf_set in clf_sets:
+        y = clf_set[0]
+        y_pred = clf_set[1]
+        label = clf_set[2]
+        fpr, tpr, thresholds = roc_curve(y, y_pred)
+        plt.plot(fpr, tpr, linewidth=1, label=label)
+    
+    plt.plot([0,1],[0,1],'k--')
+    plt.axis([0,1,0,1])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.legend(loc="bottom right")
+    plt.show()
+
+
+# In[9]:
+
+
+X = train_features.copy()
+Y = train_labels.copy()
+X_test = test_features.copy()
+Y_test = test_labels.copy()
+
+
+# In[10]:
+
+
+
+# CNN Classifier
+import keras
+from keras.models import Sequential
+from keras.layers import Dense, Flatten
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization, Dropout
+from keras.optimizers import Adam
+from sklearn.preprocessing import LabelBinarizer
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.models import load_model
+
+batch_size = 64
+epochs = 25
+TRAIN_MODEL = True
+MODEL_NAME = "trained_model.h5"
+
+size = np.int16(np.sqrt(X.shape[1]))
+
+train_x = np.reshape(X, (-1, size, size, 1))
+test_x = np.reshape(X_test, (-1, size, size, 1))
+
+#binarizer = LabelBinarizer()
+#binarizer.fit(Y)
+#train_y = binarizer.transform(Y)
+#test_y = binarizer.transform(Y_test)
+
+train_y = Y
+test_y = Y_test
+
+num_classes = 1 #len(binarizer.classes_)
+print(num_classes)
+droprate = 0.7
+
+try:
+    model = load_model(MODEL_NAME)
+except:
+    model = None
+
+if model is None:
+    model = Sequential()
+    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', input_shape=(size, size, 1)))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+    
+    model.add(Dropout(droprate))
+    model.add(Flatten())
+
+    model.add(Dense(256, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
+    model.add(Dense(128, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
+    model.add(Dense(64, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+    
+    model.add(Dense(32, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
+    model.add(Dense(num_classes, activation='sigmoid'))
+
+else:
+    print(MODEL_NAME, " is restored.")
+
+model.summary()
+
+adam = Adam()
+model.compile(loss='mean_squared_error',
+              optimizer=adam,
+              metrics=['accuracy'])
+
+callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
+
+if TRAIN_MODEL:
+    history = model.fit(train_x, train_y,
+                        batch_size=batch_size,
+                        epochs=epochs,
+                        verbose=1,
+                        validation_data=(test_x, test_y),
+                        callbacks=callbacks)
+else:
+    print("Opted not to train the model as TRAIN_MODEL is set to False. May be because model is already trained and is now being used for validation")
+    
+
+
+# In[ ]:
+
+
+saved_model = load_model(MODEL_NAME)
+score = saved_model.evaluate(test_x, test_y, verbose=1)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+
