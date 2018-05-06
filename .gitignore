@@ -99,3 +99,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+train_data.csv
+test_data.csv
+doc2vec.model
