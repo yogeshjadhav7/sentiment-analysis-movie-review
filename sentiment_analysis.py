@@ -113,6 +113,8 @@ from keras.optimizers import Adam
 from sklearn.preprocessing import LabelBinarizer
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
+from keras.utils import to_categorical
+from keras.utils.vis_utils import plot_model
 
 batch_size = 64
 epochs = 25
@@ -129,11 +131,10 @@ test_x = np.reshape(X_test, (-1, size, size, 1))
 #train_y = binarizer.transform(Y)
 #test_y = binarizer.transform(Y_test)
 
-train_y = Y
-test_y = Y_test
+train_y = to_categorical(Y)
+test_y = to_categorical(Y_test)
 
-num_classes = 1 #len(binarizer.classes_)
-print(num_classes)
+num_classes = train_y.shape[1]
 droprate = 0.7
 
 try:
@@ -174,17 +175,17 @@ if model is None:
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
 
-    model.add(Dense(num_classes, activation='sigmoid'))
+    model.add(Dense(num_classes, activation='softmax'))
 
+    adam = Adam()
+    
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=adam,
+                  metrics=['accuracy'])
 else:
     print(MODEL_NAME, " is restored.")
 
 model.summary()
-
-adam = Adam()
-model.compile(loss='mean_squared_error',
-              optimizer=adam,
-              metrics=['accuracy'])
 
 callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)]
 
@@ -200,7 +201,7 @@ else:
     
 
 
-# In[ ]:
+# In[11]:
 
 
 saved_model = load_model(MODEL_NAME)
