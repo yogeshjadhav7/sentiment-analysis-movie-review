@@ -126,11 +126,6 @@ size = np.int16(np.sqrt(X.shape[1]))
 train_x = np.reshape(X, (-1, size, size, 1))
 test_x = np.reshape(X_test, (-1, size, size, 1))
 
-#binarizer = LabelBinarizer()
-#binarizer.fit(Y)
-#train_y = binarizer.transform(Y)
-#test_y = binarizer.transform(Y_test)
-
 train_y = to_categorical(Y)
 test_y = to_categorical(Y_test)
 
@@ -141,37 +136,44 @@ try:
     model = load_model(MODEL_NAME)
 except:
     model = None
-
+    
 if model is None:
     model = Sequential()
-    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', input_shape=(size, size, 1)))
+    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', input_shape=(size, size, 1)))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+
+    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
     model.add(BatchNormalization())
 
     model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
     model.add(BatchNormalization())
-
-    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-
+    
     model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
     model.add(BatchNormalization())
     
     model.add(Dropout(droprate))
     model.add(Flatten())
 
+    model.add(Dense(1024, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
+    model.add(Dense(512, activation='elu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
     model.add(Dense(256, activation='elu'))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
-
+    
     model.add(Dense(128, activation='elu'))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
-
-    model.add(Dense(64, activation='elu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
     
-    model.add(Dense(32, activation='elu'))
+    model.add(Dense(64, activation='elu'))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
 
@@ -193,7 +195,7 @@ if TRAIN_MODEL:
     history = model.fit(train_x, train_y,
                         batch_size=batch_size,
                         epochs=epochs,
-                        verbose=1,
+                        verbose=0,
                         validation_data=(test_x, test_y),
                         callbacks=callbacks)
 else:
@@ -205,7 +207,7 @@ else:
 
 
 saved_model = load_model(MODEL_NAME)
-score = saved_model.evaluate(test_x, test_y, verbose=1)
+score = saved_model.evaluate(test_x, test_y, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 

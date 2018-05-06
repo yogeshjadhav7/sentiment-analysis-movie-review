@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 MODEL_NAME = "doc2vec.model"
-SIZE = 15
+SIZE = 20
 WINDOW_SIZE = 3
 
 POS_TRAIN_PATH = "aclImdb/train/pos/"
