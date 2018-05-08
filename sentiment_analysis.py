@@ -116,7 +116,7 @@ from keras.models import load_model
 from keras.utils import to_categorical
 from keras.utils.vis_utils import plot_model
 
-batch_size = 64
+batch_size = 32
 epochs = 25
 TRAIN_MODEL = True
 MODEL_NAME = "trained_model.h5"
@@ -130,7 +130,7 @@ train_y = to_categorical(Y)
 test_y = to_categorical(Y_test)
 
 num_classes = train_y.shape[1]
-droprate = 0.7
+droprate = 0.5
 
 try:
     model = load_model(MODEL_NAME)
@@ -141,20 +141,28 @@ if model is None:
     model = Sequential()
     model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', input_shape=(size, size, 1)))
     model.add(BatchNormalization())
-
-    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-
-    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-
-    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-    
-    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-    
     model.add(Dropout(droprate))
+
+    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
+    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+
+    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+    
+    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+    
+    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+    
     model.add(Flatten())
 
     model.add(Dense(1024, activation='elu'))
