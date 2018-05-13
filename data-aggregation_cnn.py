@@ -65,7 +65,7 @@ for filename in filenames:
     test_labels.append(0)
 
 
-# In[5]:
+# In[6]:
 
 
 tokenizer = RegexpTokenizer(r'\w+')

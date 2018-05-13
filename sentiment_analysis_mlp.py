@@ -15,6 +15,9 @@ warnings.filterwarnings("ignore")
 train_file = "train_data.csv"
 test_file = "test_data.csv"
 
+TRAIN_MODEL = True
+MODEL_NAME = "trained_model_mlp.hdf5"
+
 def load_data(file, direc="", sep=",", header=True):
     csv_path = os.path.join(direc, file)
     if header:
@@ -118,70 +121,57 @@ from keras.utils.vis_utils import plot_model
 
 batch_size = 32
 epochs = 25
-TRAIN_MODEL = True
-MODEL_NAME = "trained_model.h5"
 
-size = np.int16(np.sqrt(X.shape[1]))
+size = np.int16(X.shape[1])
 
-train_x = np.reshape(X, (-1, size, size, 1))
-test_x = np.reshape(X_test, (-1, size, size, 1))
+train_x = X.copy()
+test_x = X_test.copy()
 
 train_y = to_categorical(Y)
 test_y = to_categorical(Y_test)
 
 num_classes = train_y.shape[1]
-droprate = 0.5
+droprate = 0.8
 
 try:
     model = load_model(MODEL_NAME)
 except:
     model = None
     
+ACT = 'tanh'    
+    
 if model is None:
     model = Sequential()
-    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', input_shape=(size, size, 1)))
+
+    model.add(Dense(1024, activation=ACT, input_shape=(size,)))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
 
-    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
-
-    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
-
-    model.add(Conv2D(256, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
+    model.add(Dense(512, activation=ACT))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
     
-    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
-    
-    model.add(Conv2D(128, kernel_size=(3, 3), strides=(1, 1), activation='elu', padding='valid'))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
-    
-    model.add(Flatten())
-
-    model.add(Dense(1024, activation='elu'))
+    model.add(Dense(512, activation=ACT))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
 
-    model.add(Dense(512, activation='elu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(droprate))
-
-    model.add(Dense(256, activation='elu'))
+    model.add(Dense(256, activation=ACT))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
     
-    model.add(Dense(128, activation='elu'))
+    model.add(Dense(128, activation=ACT))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
     
-    model.add(Dense(64, activation='elu'))
+    model.add(Dense(64, activation=ACT))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+    
+    model.add(Dense(32, activation=ACT))
+    model.add(BatchNormalization())
+    model.add(Dropout(droprate))
+    
+    model.add(Dense(16, activation=ACT))
     model.add(BatchNormalization())
     model.add(Dropout(droprate))
 
@@ -211,11 +201,17 @@ else:
     
 
 
-# In[11]:
+# In[ ]:
 
 
 saved_model = load_model(MODEL_NAME)
 score = saved_model.evaluate(test_x, test_y, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+
+
+# In[ ]:
+
+
+test_x.shape
 
