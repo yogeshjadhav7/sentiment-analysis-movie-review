@@ -138,7 +138,7 @@ try:
 except:
     model = None
     
-ACT = 'tanh'    
+ACT = 'elu'    
     
 if model is None:
     model = Sequential()
@@ -193,7 +193,7 @@ if TRAIN_MODEL:
     history = model.fit(train_x, train_y,
                         batch_size=batch_size,
                         epochs=epochs,
-                        verbose=0,
+                        verbose=1,
                         validation_data=(test_x, test_y),
                         callbacks=callbacks)
 else:
@@ -208,10 +208,4 @@ saved_model = load_model(MODEL_NAME)
 score = saved_model.evaluate(test_x, test_y, verbose=0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
-
-
-# In[ ]:
-
-
-test_x.shape
 

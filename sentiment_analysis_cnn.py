@@ -138,7 +138,7 @@ try:
 except:
     model = None
     
-ACT = 'tanh'    
+ACT = 'elu'    
     
 if model is None:
     model = Sequential()
