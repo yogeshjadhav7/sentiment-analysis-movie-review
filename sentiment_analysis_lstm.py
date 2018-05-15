@@ -103,7 +103,7 @@ if max_features < test_max_features:
 max_features = 2 * max_features    
 
 
-# In[ ]:
+# In[11]:
 
 
 try:
@@ -127,7 +127,13 @@ if model is None:
 print('Train...')
 model.fit(x_train, y_train,
           batch_size=batch_size,
-          epochs=5,
+          epochs=20,
+          verbose=0,
           validation_data=[x_test, y_test],
           callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)])
+
+saved_model = load_model(MODEL_NAME)
+score = saved_model.evaluate(x_test, y_test, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
 
