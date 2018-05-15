@@ -4,6 +4,7 @@
 # In[1]:
 
 
+from __future__ import print_function
 import os
 import cv2
 import pandas as pd
@@ -59,10 +60,9 @@ test_labels = np.int16(test_data["Sentiment"].copy().values)
 test_features = test_data.drop("Sentiment", axis=1)
 
 
-# In[11]:
+# In[7]:
 
 
-from __future__ import print_function
 import numpy as np
 
 from keras.preprocessing import sequence
@@ -71,6 +71,7 @@ from keras.layers import Dense, Dropout, Embedding, LSTM, Bidirectional
 from keras.datasets import imdb
 from keras.utils import to_categorical
 from keras.callbacks import ModelCheckpoint, EarlyStopping
+from keras.models import load_model
 
 maxlen = train_features.shape[1]
 batch_size = 32
@@ -86,7 +87,7 @@ print('y_train shape:', y_train.shape)
 print('y_test shape:', y_test.shape)
 
 
-# In[12]:
+# In[8]:
 
 
 max_features = 0
@@ -102,23 +103,31 @@ if max_features < test_max_features:
 max_features = 2 * max_features    
 
 
-# In[13]:
+# In[ ]:
 
 
-model = Sequential()
-model.add(Embedding(max_features, 400, input_length=maxlen))
-model.add(Bidirectional(LSTM(256)))
-model.add(Dropout(0.8))
-model.add(Dense(1, activation='sigmoid'))
+try:
+    model = load_model(MODEL_NAME)
+    print("Loaded saved model: " + MODEL_NAME)
+except:
+    print("Creating new model: " + MODEL_NAME)
+    model = None
 
-model.compile(loss='binary_crossentropy',
-              optimizer='adam',
-              metrics=['accuracy'])
+if model is None:
+    model = Sequential()
+    model.add(Embedding(max_features, 256, input_length=maxlen))
+    model.add(Bidirectional(LSTM(128, dropout=0.9, recurrent_dropout=0.9)))
+    model.add(Dropout(0.9))
+    model.add(Dense(1, activation='sigmoid'))
+
+    model.compile(loss='binary_crossentropy',
+                  optimizer='adam',
+                  metrics=['accuracy'])
 
 print('Train...')
 model.fit(x_train, y_train,
           batch_size=batch_size,
-          epochs=4,
+          epochs=5,
           validation_data=[x_test, y_test],
           callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)])
 

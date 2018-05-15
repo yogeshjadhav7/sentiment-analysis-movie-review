@@ -5,7 +5,6 @@
 
 
 #Import all the dependencies
-import gensim
 from nltk import RegexpTokenizer
 from nltk.corpus import stopwords
 from os import listdir
@@ -14,10 +13,7 @@ import numpy as np
 
 import pandas as pd
 
-MODEL_NAME = "doc2vec.model"
-SIZE = 25
-WINDOW_SIZE = 3
-
+PRUNE = False
 POS_TRAIN_PATH = "aclImdb/train/pos/"
 NEG_TRAIN_PATH = "aclImdb/train/neg/"
 POS_TEST_PATH = "aclImdb/test/pos/"
@@ -136,8 +132,10 @@ for f in train_features:
     r = encoder.transform(r)
     x_train.append(r)
     counter = counter + 1
-    if counter % 100 == 0:
+    if counter % 1000 == 0:
         print(counter)
+        if PRUNE:
+            break
 
 counter = 0
 for f in test_features:
@@ -145,8 +143,10 @@ for f in test_features:
     r = encoder.transform(r)
     x_test.append(r)
     counter = counter + 1
-    if counter % 100 == 0:
+    if counter % 1000 == 0:
         print(counter)
+        if PRUNE:
+            break
 
 
 # In[11]:
@@ -156,7 +156,7 @@ x_train_copy = x_train.copy()
 x_test_copy = x_test.copy()
 
 
-# In[13]:
+# In[12]:
 
 
 from keras.preprocessing import sequence
@@ -167,14 +167,14 @@ print('x_train shape:', x_train.shape)
 print('x_test shape:', x_test.shape)
 
 
-# In[14]:
+# In[13]:
 
 
 columns = [str(x) for x in range(mean_len)]
 columns.append("Sentiment")
 
 
-# In[15]:
+# In[14]:
 
 
 train_data = None
@@ -191,13 +191,13 @@ for idx in range(len(x_train)):
     
 
 
-# In[16]:
+# In[15]:
 
 
 np.shape(train_data)
 
 
-# In[17]:
+# In[16]:
 
 
 test_data = None
@@ -214,51 +214,51 @@ for idx in range(len(x_test)):
         
 
 
-# In[18]:
+# In[17]:
 
 
 np.shape(test_data)
 
 
-# In[19]:
+# In[18]:
 
 
 train_data = pd.DataFrame(columns=columns, data=train_data)
 test_data = pd.DataFrame(columns=columns, data=test_data)
 
 
-# In[20]:
+# In[19]:
 
 
 train_data = train_data.sample(frac=1)
 test_data = test_data.sample(frac=1)
 
 
-# In[21]:
+# In[20]:
 
 
 train_data.head()
 
 
-# In[22]:
+# In[21]:
 
 
 train_data.info()
 
 
-# In[23]:
+# In[22]:
 
 
 test_data.head()
 
 
-# In[24]:
+# In[23]:
 
 
 test_data.info()
 
 
-# In[25]:
+# In[24]:
 
 
 train_data.to_csv("train_data_lstm.csv", index=False)
