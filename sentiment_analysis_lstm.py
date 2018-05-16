@@ -74,7 +74,7 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 
 maxlen = train_features.shape[1]
-batch_size = 32
+batch_size = 64
 
 x_train = sequence.pad_sequences(train_features.values, maxlen=maxlen)
 x_test = sequence.pad_sequences(test_features.values, maxlen=maxlen)
@@ -115,9 +115,9 @@ except:
 
 if model is None:
     model = Sequential()
-    model.add(Embedding(max_features, 256, input_length=maxlen))
-    model.add(Bidirectional(LSTM(128, dropout=0.9, recurrent_dropout=0.9)))
-    model.add(Dropout(0.9))
+    model.add(Embedding(max_features, 512, input_length=maxlen))
+    model.add(Bidirectional(LSTM(256, dropout=0.7, recurrent_dropout=0.7)))
+    model.add(Dropout(0.7))
     model.add(Dense(1, activation='sigmoid'))
 
     model.compile(loss='binary_crossentropy',
@@ -127,7 +127,7 @@ if model is None:
 print('Train...')
 model.fit(x_train, y_train,
           batch_size=batch_size,
-          epochs=20,
+          epochs=25,
           verbose=0,
           validation_data=[x_test, y_test],
           callbacks = [ModelCheckpoint(MODEL_NAME, monitor='val_acc', verbose=1, save_best_only=True, save_weights_only=False, mode='max', period=1)])
